@@ -9,23 +9,45 @@ on:
 
 jobs:
   build:
-    name: Build Docker Image
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
-      
-      - name: Log in to GitHub Packages
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Authenticate to GitHub Packages
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
-
-      - name: Build and Publish latest service image
-        uses: VaultVulp/gp-docker-action@1.6.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          # generate the PAT
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          image-name: ${{ github.event.repository.name }}
-          image-tag: ${{github.ref_name}}
-          custom-args: ${{inputs.custom-args}}
+          node-version: '18'
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm install --production=false --force
+
+      - name: Build project
+        run: npm run build
+
+      - name: Install production dependencies
+        run: npm install --omit-dev --force
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.event.repository.name }}:${{github.ref_name}}
+          build-args: ${{inputs.custom-args}}
+
