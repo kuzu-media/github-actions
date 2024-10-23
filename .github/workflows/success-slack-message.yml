@@ -1,0 +1,26 @@
+name: Success Slack Message
+
+on:
+  workflow_call:
+    inputs:
+      slack_result:
+        type: string
+        required: true
+    secrets:
+      SLACK_TOKEN:
+        required: true
+      SLACK_CHANNEL:
+        required: true
+
+jobs:
+  success-slack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Thread Message
+        uses: archive/github-actions-slack@v2.6.0
+        with:
+          slack-function: update-message
+          slack-bot-user-oauth-access-token: "${{secrets.SLACK_TOKEN}}"
+          slack-channel: ${{ secrets.SLACK_CHANNEL }}
+          slack-update-message-ts: ${{ inputs.slack_result }}
+          slack-update-message-text: "Deploy for <https://github.com/${{ github.repository }} |  ${{ github.repository }}> *${{github.ref_name}}*. View Progress <https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}?check_suite_focus=true | Here>. :white_check_mark:"

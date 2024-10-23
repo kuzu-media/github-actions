@@ -1,0 +1,31 @@
+name: Build Image
+
+on:
+  workflow_call:
+    inputs:
+      custom-args:
+        type: string
+        required: false
+
+jobs:
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Log in to GitHub Packages
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Authenticate to GitHub Packages
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+
+      - name: Build and Publish latest service image
+        uses: VaultVulp/gp-docker-action@1.6.0
+        with:
+          # generate the PAT
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          image-name: ${{ github.event.repository.name }}
+          image-tag: ${{github.ref_name}}
+          custom-args: ${{inputs.custom-args}}

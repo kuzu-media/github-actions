@@ -1,0 +1,20 @@
+name: Add IP
+description: Add an IP from the trusted sources of DO database
+
+inputs:
+  database_id:
+    required: true
+    description: The DO database's id
+  DO_TOKEN:
+    required: true
+    description: The token used to access DO
+
+runs:
+  using: "composite"
+  steps:
+    - name: Add IP address to trusted source (managed database)
+      uses: GarreauArthur/manage-digital-ocean-managed-database-trusted-sources-gh-action@main
+      with:
+        action: "add"
+        database_id: ${{inputs.database_id}}
+        digitalocean_token: "${{ inputs.DO_TOKEN }}"
