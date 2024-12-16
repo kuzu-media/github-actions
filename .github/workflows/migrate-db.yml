@@ -28,14 +28,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       
-      - name: Setup Node 
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
-      
-      - name: Authenticate to GitHub Packages
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+          node-version: '20.x'
+          registry-url: 'https://npm.pkg.github.com'
+          # Defaults to the user or organization that owns the workflow file
+          scope: '@kuzu-media'
+
+      - name: Setup Cache
+        #  see: https://nextjs.org/docs/pages/building-your-application/deploying/ci-build-caching#github-actions
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          # Generate a new cache whenever packages or source files change.
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          # If source files changed but packages didn't, rebuild from a prior cache.
+          restore-keys: |
+            ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}-
       
       - name: Add DB URL
         run: echo "DATABASE_URL=${{secrets.DATABASE_URL}}" > .env
