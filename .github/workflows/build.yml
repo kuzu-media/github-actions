@@ -56,6 +56,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.event.repository.name }}:${{github.ref_name}}
+          tags: ghcr.io/${{ github.event.repository.name }}-${{github.ref_name}}
           build-args: ${{inputs.custom-args}}
 
