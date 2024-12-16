@@ -14,16 +14,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Save Repo Lowercase Repo Name
-        id: string
-        uses: ASzc/change-string-case-action@v1
-        with:
-          string: ${{ github.repository }}
-
       - name: Deploy image
         uses: floms/action-caprover@v1
         with:
           host: ${{inputs.server}}
           password: ${{inputs.password}}
           app: "${{ github.event.repository.name }}-${{github.ref_name}}"
-          image: "ghcr.io/${{ steps.string.outputs.lowercase }}/${{ github.event.repository.name }}:${{github.ref_name}}"
+          image: "ghcr.io/${{github.event.repository.owner.name}}/${{ github.event.repository.name }}:${{github.ref_name}}"
